@@ -16,12 +16,9 @@ class Process(Thread):
         Thread.__init__(self)
 
         self.setName(name)
-        self.communicator = Com(self.getName())
-        self.bus_size = bus_size
+        self.communicator = Com(self.getName(), bus_size)
 
         self.alive = True
-        self.token = False
-        self.is_critical_section = False
         self.dice = 0
         self.round = 0
         self.synch_request_counter = 0
@@ -64,45 +61,6 @@ class Process(Thread):
         self.round += 1
         print(self.getName() + " Round: {} | Dice: {}".format(self.round, self.dice))
         self.synchronize()
-
-    def launch_token(self):
-        """
-        Give the token to this process.
-        """
-        self.token = True
-
-    def on_token(self):
-        """
-        Handle the token.
-        """
-        if self.token:
-            if self.is_critical_section:
-                self.release()
-                self.write_winner()
-                self.communicator.broadcast("run")
-            else:
-                self.send_token()
-
-    def request(self):
-        """
-        Set this process critical section to True.
-        """
-        self.is_critical_section = True
-
-    def release(self):
-        """
-        Quit the critical section and send the token to the next process
-        """
-        self.is_critical_section = False
-        self.send_token()
-
-    def send_token(self):
-        """
-        Send the token to the next process.
-        """
-        target = (int(self.getName()[1:]) % self.bus_size) + 1
-        self.communicator.send_to("token", target)
-        self.token = False
 
     def synchronize(self):
         """

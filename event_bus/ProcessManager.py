@@ -41,7 +41,7 @@ class ProcessManager:
         """
         for i in range(number_of_process):
             self.process_list.append(Process("P{}".format(i + 1), number_of_process))
-        self.process_list[len(self.process_list) - 1].launch_token()
+        self.process_list[len(self.process_list) - 1].communicator.launch_token()
 
     def wait_round(self, round_limit):
         """

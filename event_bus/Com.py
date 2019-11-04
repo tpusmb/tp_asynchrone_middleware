@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from .EventBus import EventBus
 from .Event import Event
 from .Lamport import Lamport
+from .TokenThread import TokenThread
 from .BroadcastEvent import BroadcastEvent
 from .DedicatedEvent import DedicatedEvent
 import os
@@ -29,31 +30,36 @@ FOLDER_ABSOLUTE_PATH = os.path.normpath(os.path.dirname(os.path.abspath(__file__
 
 class Com:
 
-    def __init__(self, owner_name):
+    def __init__(self, owner_name, bus_size):
         self.bus = EventBus.get_instance()
         self.lamport = Lamport()
+        self.token_thread = TokenThread()
         self.owner_name = owner_name
+
+        self.bus_size = bus_size
+        self.token = False
+        self.is_critical_section = False
 
         self.message_box = []
 
         DedicatedEvent.subscribe_to_dedicated_channel(self.bus, self)
         BroadcastEvent.subscribe_to_broadcast(self.bus, self)
 
-    def send_to(self, message, target):
+    def send_to(self, payload, target):
         """
         Send a message to another process.
-        :param message: (String) Message to send.
+        :param payload: (String) Message to send.
         :param target: (String) Process that will receive the message
         """
-        event = Event(topic="P{}".format(target), data=message)
+        event = Event(topic="P{}".format(target), data=payload)
         self.send(event)
 
-    def broadcast(self, message):
+    def broadcast(self, payload):
         """
         Send a message to every process.
-        :param message: (String) Message to send.
+        :param payload: (String) Message to send.
         """
-        event = Event(topic="broadcast", data=message)
+        event = Event(topic="broadcast", data=payload)
         self.send(event)
 
     def send(self, event):
@@ -95,6 +101,24 @@ class Com:
         else:
             print(self.owner_name + ' Invalid object type is passed.')
 
+    def launch_token(self):
+        """
+        Give the token to this process.
+        """
+        self.token_thread = True
+
+    def request_critical_section(self):
+        """
+        Enter critical section, set this process critical section to True.
+        """
+        self.is_critical_section = True
+
+    def release_critical_section(self):
+        """
+        Quit the critical section.
+        """
+        self.is_critical_section = False
+        # self.send_token()
 
     def update_lamport(self, value):
         self.lamport.set_clock(value)
