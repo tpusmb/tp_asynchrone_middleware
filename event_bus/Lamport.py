@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
+from time import sleep
+import asyncio
 import os
-import timeit
 import logging.handlers
 
 PYTHON_LOGGER = logging.getLogger(__name__)
@@ -26,10 +27,19 @@ FOLDER_ABSOLUTE_PATH = os.path.normpath(os.path.dirname(os.path.abspath(__file__
 class Lamport(object):
 
     def __init__(self):
-        self.counter = 0
+        self.clock = 0
+        self.sem = asyncio.Semaphore(1)
 
-    def send(self):
-        self.counter += 1
+    def get_clock(self):
+        return self.clock
 
-    def receive(self, counter):
-        self.counter = counter + 1 if counter > self.counter else self.counter + 1
+    def set_clock(self, value):
+        while not self.sem.locked():
+            sleep(0.1)
+        self.clock = value
+
+    def lock_clock(self):
+        self.sem.acquire()
+
+    def unlock_clock(self):
+        self.sem.release()

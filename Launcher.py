@@ -24,7 +24,7 @@ def normal_run():
 
 def dice_game_run():
     print("\n -> Dice (1 to 100)\n")
-    process_manager.add_dice_process(NB_PROCESS)
+    process_manager.add_process(NB_PROCESS)
     process_manager.wait_round(5)
 
 
