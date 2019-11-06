@@ -26,5 +26,5 @@ FOLDER_ABSOLUTE_PATH = os.path.normpath(os.path.dirname(os.path.abspath(__file__
 class DedicatedEvent:
 
     @staticmethod
-    def subscribe_to_dedicated_channel(bus, process):
-        bus.register(process, process.getName())
+    def subscribe_to_dedicated_channel(bus, com):
+        bus.register(com, com.owner_name)

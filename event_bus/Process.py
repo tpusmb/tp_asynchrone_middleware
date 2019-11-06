@@ -21,7 +21,6 @@ class Process(Thread):
         self.alive = True
         self.dice = 0
         self.round = 0
-        self.synch_request_counter = 0
 
         self.process_results = []
 
@@ -39,16 +38,11 @@ class Process(Thread):
         Main loop of the process.
         """
         sleep(1)
-        self.dice_game()
+        # self.dice_game()
         loop = 0
         while self.alive:
             sleep(1)
-            if self.synch_request_counter is not 0:
-                self.on_synchronize()
-            elif not self.is_critical_section or (self.is_critical_section and self.token):
-                print(self.getName() + " Loop: {}".format(loop))
-                self.on_token()
-                loop += 1
+            self.communicator.broadcast("heartbit")
 
         print(self.getName() + " stopped")
 
@@ -61,20 +55,6 @@ class Process(Thread):
         self.round += 1
         print(self.getName() + " Round: {} | Dice: {}".format(self.round, self.dice))
         self.synchronize()
-
-    def synchronize(self):
-        """
-        Send a message to every process.
-        """
-        self.communicator.broadcast("synchronization")
-
-    def on_synchronize(self):
-        """
-       Check responses from other process to reset the synch_request_counter.
-        """
-        if self.synch_request_counter == self.bus_size:
-            self.communicator.broadcast(self.dice)
-            self.synch_request_counter = 0
 
     def stop(self):
         """

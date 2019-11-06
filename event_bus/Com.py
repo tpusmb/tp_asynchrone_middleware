@@ -6,8 +6,10 @@ from .EventBus import EventBus
 from .Event import Event
 from .Lamport import Lamport
 from .TokenThread import TokenThread
+from .Message import Message
 from .BroadcastEvent import BroadcastEvent
 from .DedicatedEvent import DedicatedEvent
+from time import sleep
 import os
 import logging.handlers
 
@@ -33,15 +35,15 @@ class Com:
     def __init__(self, owner_name, bus_size):
         self.bus = EventBus.get_instance()
         self.lamport = Lamport()
-        self.token_thread = TokenThread()
+        self.token_thread = TokenThread(self.bus, self.bus_size, owner_name)
         self.owner_name = owner_name
 
         self.bus_size = bus_size
-        self.token = False
-        self.is_critical_section = False
+        self.synch_request_counter = 0
 
         self.message_box = []
-
+        self.waiting_for_sync = False
+        self.sync_message = None
         DedicatedEvent.subscribe_to_dedicated_channel(self.bus, self)
         BroadcastEvent.subscribe_to_broadcast(self.bus, self)
 
@@ -51,7 +53,7 @@ class Com:
         :param payload: (String) Message to send.
         :param target: (String) Process that will receive the message
         """
-        event = Event(topic="P{}".format(target), data=payload)
+        event = Event(topic="P{}".format(target), data=Message(payload, self.owner_name, Message.ASYNC))
         self.send(event)
 
     def broadcast(self, payload):
@@ -59,8 +61,41 @@ class Com:
         Send a message to every process.
         :param payload: (String) Message to send.
         """
-        event = Event(topic="broadcast", data=payload)
+        event = Event(topic="broadcast", data=Message(payload, self.owner_name, Message.ASYNC))
         self.send(event)
+
+    def broadcast_sync(self, payload, process_from):
+        if self.owner_name is process_from:
+            for i in range(0, self.bus_size):
+                if "P{}".format(i) is not self.owner_name:
+                    self.send_to_sync(payload, "P{}".format(i))
+        else:
+            self.receive_from_sync(payload, process_from)
+
+    def send_to_sync(self, payload, dest):
+        get_msg = False
+        event = Event(topic=dest, data=Message(payload, self.owner_name, Message.SYNC))
+        self.send(event)
+        while not get_msg:
+            for msg in self.message_box:
+                if msg.from_id == dest and msg.message_type == Message.SYNC:
+                    get_msg = True
+                    self.message_box.remove(msg)
+            sleep(0.1)
+
+    def receive_from_sync(self, payload, process_from):
+        get_msg = False
+        msg_get = None
+        while not get_msg:
+            for msg in self.message_box:
+                if msg.from_id == process_from and msg.message_type == Message.SYNC:
+                    get_msg = True
+                    msg_get = msg.payload
+                    self.message_box.remove(msg)
+            sleep(0.1)
+        event = Event(topic=process_from, data=Message(payload, self.owner_name, Message.SYNC))
+        self.send(event)
+        return msg_get
 
     def send(self, event):
         """
@@ -81,17 +116,20 @@ class Com:
         """
 
         if isinstance(event, Event):
+            data = event.get_data()
+            topic = event.get_topic()
             print(self.owner_name + " receive DATA: {}"
                                     " | TOPIC: {}"
-                                    " | counter: {}".format(event.get_data(), event.get_topic(), self.lamport.clock))
-            self.update_lamport(event.counter + 1 if event.counter > self.lamport.get_clock() else self.lamport.get_clock() + 1)
-            self.message_box.append(event.get_data())
+                                    " | counter: {}".format(data, topic, self.lamport.clock))
+            if data.message_type is not Message.TOKEN:
+                self.update_lamport(event.counter + 1 if event.counter > self.lamport.get_clock()
+                                    else self.lamport.get_clock() + 1)
 
-            """if data is "token":
-                self.token = True
-            elif data is "synchronization":
+            self.message_box.append(data)
+
+            if data.payload is "synchronization":
                 self.synch_request_counter += 1
-            elif data is "run":
+            """elif data is "run":
                 self.dice_game()
             else:
                 self.process_results.append(data)
@@ -111,14 +149,24 @@ class Com:
         """
         Enter critical section, set this process critical section to True.
         """
-        self.is_critical_section = True
+        self.token_thread.request_critical_section()
+        while not self.token_thread.is_critical_section:
+            sleep(0.1)
 
     def release_critical_section(self):
         """
         Quit the critical section.
         """
-        self.is_critical_section = False
-        # self.send_token()
+        self.token_thread.release()
+
+    def synchronize(self):
+        """
+        Send a message to every process.
+        """
+        self.broadcast("synchronization")
+        while not self.synch_request_counter == self.bus_size:
+            sleep(0.1)
+        self.synch_request_counter = 0
 
     def update_lamport(self, value):
         self.lamport.set_clock(value)

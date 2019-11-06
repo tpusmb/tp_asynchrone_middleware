@@ -9,7 +9,7 @@ import logging.handlers
 PYTHON_LOGGER = logging.getLogger(__name__)
 if not os.path.exists("log"):
     os.mkdir("log")
-HDLR = logging.handlers.TimedRotatingFileHandler("log/BroadcastMessage.log",
+HDLR = logging.handlers.TimedRotatingFileHandler("log/Message.log",
                                                  when="midnight", backupCount=60)
 STREAM_HDLR = logging.StreamHandler()
 FORMATTER = logging.Formatter("%(asctime)s %(filename)s [%(levelname)s] %(message)s")
@@ -23,8 +23,13 @@ PYTHON_LOGGER.setLevel(logging.DEBUG)
 FOLDER_ABSOLUTE_PATH = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
 
 
-class BroadcastEvent:
+class Message:
 
-    @staticmethod
-    def subscribe_to_broadcast(bus, com):
-        bus.register(com, 'broadcast')
+    SYNC = "sync"
+    ASYNC = "async"
+    TOKEN = "token"
+
+    def __init__(self, payload, from_id, message_type=ASYNC):
+        self.payload = payload
+        self.message_type = message_type
+        self.from_id = from_id
