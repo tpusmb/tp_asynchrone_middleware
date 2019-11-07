@@ -42,7 +42,7 @@ class Com:
         self.lamport = Lamport()
         self.token_thread = TokenThread(self.bus, bus_size, owner_name)
         self.owner_name = owner_name
-        self.number = int(self.owner_name[1]) - 1
+        self.number = int(self.owner_name[1:]) - 1
 
         self.bus_size = bus_size
         self.synch_request_counter = 0
@@ -157,7 +157,10 @@ class Com:
             if data.message_type is not Message.TOKEN:
                 self.update_lamport(event.counter + 1 if event.counter > self.lamport.get_clock()
                                     else self.lamport.get_clock() + 1)
-            if data.message_type is Message.SYNCHRONIZATION:
+
+            if data.message_type is Message.TOKEN:
+                self.token_thread.token = True
+            elif data.message_type is Message.SYNCHRONIZATION:
                 self.synch_request_counter += 1
             elif data.message_type is Message.HEARTBIT:
                 self.process_alive.append(data.payload)

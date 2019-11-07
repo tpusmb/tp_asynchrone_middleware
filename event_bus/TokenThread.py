@@ -39,22 +39,20 @@ class TokenThread(Thread):
         self.bus = bus
         self.bus_size = bus_size
         self.owner_name = owner_name
+        self.alive = True
         self.token = False
         self.is_critical_section = False
         self.is_asking_for_critical_section = False
+
+        self.start()
 
     def run(self):
         """
         Main loop of this thread.
         """
-        self.on_token()
-        sleep(0.1)
-
-    def request_critical_section(self):
-        """
-        Method to ask for the token to enter critical section.
-        """
-        self.is_asking_for_critical_section = True
+        while self.alive:
+            self.on_token()
+            sleep(0.5)
 
     def on_token(self):
         """
@@ -65,6 +63,12 @@ class TokenThread(Thread):
                 self.is_critical_section = True
             else:
                 self.send_token()
+
+    def request_critical_section(self):
+        """
+        Method to ask for the token to enter critical section.
+        """
+        self.is_asking_for_critical_section = True
 
     def release(self):
         """
@@ -78,7 +82,14 @@ class TokenThread(Thread):
         """
         Send the token to the next process.
         """
-        dest = (int(self.owner_name()[1:]) % self.bus_size) + 1
+        dest = "P{}".format((int(self.owner_name[1:]) % self.bus_size) + 1)
         event = Event(topic=dest, data=Message("token", self.owner_name, Message.TOKEN))
         self.bus.post(event)
         self.token = False
+
+    def stop(self):
+        """
+        Stop the thread.
+        """
+        self.alive = False
+        self.join()

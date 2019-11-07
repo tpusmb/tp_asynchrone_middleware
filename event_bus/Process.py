@@ -52,6 +52,7 @@ class Process(Thread):
         """
         Stop the process.
         """
+        self.communicator.token_thread.stop()
         self.alive = False
         self.join()
 
