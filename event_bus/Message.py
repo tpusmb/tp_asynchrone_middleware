@@ -28,8 +28,16 @@ class Message:
     SYNC = "sync"
     ASYNC = "async"
     TOKEN = "token"
+    SYNCHRONIZATION = "synchronization"
+    HEARTBIT = "heartbit"
 
-    def __init__(self, payload, from_id, message_type=ASYNC):
+    def __init__(self, payload, sender, message_type=ASYNC):
+        """
+        Constructor of the class.
+        :param payload: (String) The message.
+        :param sender: (String) Sender of the message.
+        :param message_type: (String) Type of the message.
+        """
         self.payload = payload
         self.message_type = message_type
-        self.from_id = from_id
+        self.sender = sender

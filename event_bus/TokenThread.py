@@ -29,6 +29,12 @@ FOLDER_ABSOLUTE_PATH = os.path.normpath(os.path.dirname(os.path.abspath(__file__
 class TokenThread(Thread):
 
     def __init__(self, bus, bus_size, owner_name):
+        """
+        Constructor of the class.
+        :param bus: (EventBus) The bus.
+        :param bus_size: (Integer) The size of the bus.
+        :param owner_name: (String) The process that own this thread.
+        """
         Thread.__init__(self)
         self.bus = bus
         self.bus_size = bus_size
@@ -38,10 +44,16 @@ class TokenThread(Thread):
         self.is_asking_for_critical_section = False
 
     def run(self):
+        """
+        Main loop of this thread.
+        """
         self.on_token()
         sleep(0.1)
 
     def request_critical_section(self):
+        """
+        Method to ask for the token to enter critical section.
+        """
         self.is_asking_for_critical_section = True
 
     def on_token(self):
@@ -55,6 +67,9 @@ class TokenThread(Thread):
                 self.send_token()
 
     def release(self):
+        """
+        Release the token and quit critical section.
+        """
         self.send_token()
         self.is_asking_for_critical_section = False
         self.is_critical_section = False
@@ -63,7 +78,7 @@ class TokenThread(Thread):
         """
         Send the token to the next process.
         """
-        target = (int(self.owner_name()[1:]) % self.bus_size) + 1
-        event = Event(topic="P{}".format(target), data=Message("token", self.owner_name, Message.TOKEN))
+        dest = (int(self.owner_name()[1:]) % self.bus_size) + 1
+        event = Event(topic=dest, data=Message("token", self.owner_name, Message.TOKEN))
         self.bus.post(event)
         self.token = False

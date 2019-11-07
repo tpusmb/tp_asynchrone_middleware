@@ -27,19 +27,36 @@ FOLDER_ABSOLUTE_PATH = os.path.normpath(os.path.dirname(os.path.abspath(__file__
 class Lamport(object):
 
     def __init__(self):
+        """
+        Constructor of the class.
+        """
         self.clock = 0
         self.sem = asyncio.Semaphore(1)
 
     def get_clock(self):
+        """
+        Getter of the clock.
+        :return: (Integer) The clock.
+        """
         return self.clock
 
     def set_clock(self, value):
-        while not self.sem.locked():
-            sleep(0.1)
+        """
+        Setter of the clock.
+        :param value: (Integer) The new value of the clock.
+        """
+        """while not self.sem.locked():
+            sleep(0.1)"""
         self.clock = value
 
     def lock_clock(self):
+        """
+        Method to lock the access to the clock.
+        """
         self.sem.acquire()
 
     def unlock_clock(self):
+        """
+        Method to unlock the access to the clock.
+        """
         self.sem.release()

@@ -37,7 +37,6 @@ class ProcessManager:
         Create "number_of_process" process of the Process class and add them to the process list.
         Give the token to the last created process.
         :param number_of_process: (Integer) number of process that will be created
-        :return:
         """
         for i in range(number_of_process):
             self.process_list.append(Process("P{}".format(i + 1), number_of_process))

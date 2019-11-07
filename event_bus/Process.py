@@ -26,13 +26,6 @@ class Process(Thread):
 
         self.start()
 
-    def process(self, event):
-        """
-        Function to receive an event and handle his message.
-        :param event: (Event) Event that contains the topic and the message.
-        """
-        self.communicator.receive(event)
-
     def run(self):
         """
         Main loop of the process.
@@ -41,8 +34,7 @@ class Process(Thread):
         # self.dice_game()
         loop = 0
         while self.alive:
-            sleep(1)
-            self.communicator.broadcast("heartbit")
+            self.communicator.loop()
 
         print(self.getName() + " stopped")
 
@@ -54,7 +46,7 @@ class Process(Thread):
         self.dice = randint(1, 100)
         self.round += 1
         print(self.getName() + " Round: {} | Dice: {}".format(self.round, self.dice))
-        self.synchronize()
+        # self.synchronize()
 
     def stop(self):
         """
@@ -73,7 +65,7 @@ class Process(Thread):
                 higer_result = self.process_results[i]
         if self.dice >= higer_result:
             print(self.getName() + " is the winner with: {}".format(self.dice))
-            self.request()
+            # self.request()
 
     def write_winner(self):
         """
