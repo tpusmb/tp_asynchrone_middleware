@@ -35,7 +35,7 @@ class Com:
     def __init__(self, owner_name, bus_size):
         """
         Constructor of the class.
-        :param owner_name: (String) Name of the process that own this instance of comunicator.
+        :param owner_name: (String) Name of the process that own this instance of comunicator P1 to Pn.
         :param bus_size: (Integer) Number of process in the bus.
         """
         self.bus = EventBus.get_instance()
@@ -57,29 +57,29 @@ class Com:
 
     def process(self, event):
         """
-        Function to receive an event and handle his data.
+        Function to _receive an event and handle his data.
         :param event: (Event) Event that contains the topic and data.
         """
-        self.receive(event)
+        self._receive(event)
 
     def send_to(self, payload, dest):
         """
         Send a message to another process.
-        :param payload: (String) Message to send.
-        :param dest: (String) Process that will receive the message.
+        :param payload: (String) Message to _send.
+        :param dest: (String) Process that will _receive the message 1 to n.
         """
         event = Event(topic="P{}".format(dest), data=Message(payload, self.owner_name, Message.ASYNC))
-        self.send(event)
+        self._send(event)
 
     def send_to_sync(self, payload, dest):
         """
         Send a message to a process and wait for his response.
-        :param payload: (String) Message to send.
-        :param dest: (String) Process that will receive the message.
+        :param payload: (String) Message to _send.
+        :param dest: (String) Process that will _receive the message 1 to n.
         """
         get_msg = False
-        event = Event(topic=dest, data=Message(payload, self.owner_name, Message.SYNC))
-        self.send(event)
+        event = Event(topic="P{}".format(dest), data=Message(payload, self.owner_name, Message.SYNC))
+        self._send(event)
         while not get_msg:
             for msg in self.message_box:
                 if msg.from_id == dest and msg.message_type == Message.SYNC:
@@ -90,16 +90,16 @@ class Com:
     def broadcast(self, payload, message_type):
         """
         Send a message to every process.
-        :param payload: (String) Message to send.
+        :param payload: (String) Message to _send.
         :param message_type: (String) Message type.
         """
         event = Event(topic="broadcast", data=Message(payload, self.owner_name, message_type))
-        self.send(event)
+        self._send(event)
 
     def broadcast_sync(self, payload, sender):
         """
-        Send a message to every process if the it is the sender. Else, will receive this message.
-        :param payload: (String) Message to send.
+        Send a message to every process if the it is the sender. Else, will _receive this message.
+        :param payload: (String) Message to _send.
         :param sender: (String) Sender of the message.
         """
         if self.owner_name is sender:
@@ -113,7 +113,7 @@ class Com:
         """
         Wait for the message sent by the sender of the broadcast_sync method.
         :param payload: (String) The message.
-        :param sender: (String) The sender of the message.
+        :param sender: (String) The sender of the message 1 to n.
         """
         get_msg = False
         msg_get = None
@@ -124,16 +124,16 @@ class Com:
                     msg_get = msg.payload
                     self.message_box.remove(msg)
             sleep(0.1)
-        event = Event(topic=sender, data=Message(payload, self.owner_name, Message.SYNC))
-        self.send(event)
+        event = Event(topic="P{}".format(sender), data=Message(payload, self.owner_name, Message.SYNC))
+        self._send(event)
         return msg_get
 
-    def send(self, event):
+    def _send(self, event):
         """
         Post a message into the bus.
         :param event: (Event) Event that contains the topic and the data of the message.
         """
-        print(self.owner_name + " send DATA: Message: {} & Type: {}"
+        print(self.owner_name + " _send DATA: Message: {} & Type: {}"
                                 " | TOPIC: {}"
                                 " | counter: {}".format(event.get_data().payload,
                                                         event.get_data().message_type,
@@ -143,35 +143,30 @@ class Com:
         event.counter = self.lamport.clock
         self.bus.post(event)
 
-    def receive(self, event):
+    def _receive(self, event):
         """
-        Function to receive an event and handle his data.
+        Function to _receive an event and handle his data.
         :param event: (Event) Event that contains the topic and the data of the message.
         """
         if isinstance(event, Event):
             data = event.get_data()
             topic = event.get_topic()
-            print(self.owner_name + " receive DATA: Message: {} & Type: {}"
-                                    " | TOPIC: {}"
-                                    " | counter: {}".format(data.payload, data.message_type, topic, self.lamport.clock))
             if data.message_type is not Message.TOKEN:
                 self.update_lamport(event.counter + 1 if event.counter > self.lamport.get_clock()
                                     else self.lamport.get_clock() + 1)
 
             if data.message_type is Message.TOKEN:
                 self.token_thread.token = True
+                return
             elif data.message_type is Message.SYNCHRONIZATION:
                 self.synch_request_counter += 1
             elif data.message_type is Message.HEARTBIT:
                 self.process_alive.append(data.payload)
             else:
                 self.message_box.append(data)
-            """elif data is "run":
-                self.dice_game()
-            else:
-                self.process_results.append(data)
-                if len(self.process_results) == self.bus_size:
-                    self.check_winner()"""
+            print(self.owner_name + " _receive DATA: Message: {} & Type: {}"
+                                    " | TOPIC: {}"
+                                    " | counter: {}".format(data.payload, data.message_type, topic, self.lamport.clock))
         else:
             print(self.owner_name + ' Invalid object type is passed.')
 
@@ -213,7 +208,7 @@ class Com:
 
     def loop(self):
         """
-        Main loop of this communicator. Will send an heartbit type message to notify that his process is alive.
+        Main loop of this communicator. Will _send an heartbit type message to notify that his process is alive.
         """
         self.broadcast(self.number, Message.HEARTBIT)
         sleep(1)

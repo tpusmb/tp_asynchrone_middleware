@@ -10,12 +10,13 @@ class Process(Thread, ABC):
     def __init__(self, name, bus_size):
         """
         Constructor of the class.
-        :param name: (String) Name of the process.
+        :param name: (String) Name of the process P1 to Pn.
         :param bus_size: (Integer) Number of process in the bus.
         """
         Thread.__init__(self)
 
         self.setName(name)
+        self.process_id = int(name[1:]) - 1
         self.communicator = Com(self.getName(), bus_size)
         self.alive = True
 
