@@ -1,9 +1,8 @@
+from abc import ABC, abstractmethod
 from threading import Thread
 from time import sleep
 
 from .Com import Com
-from random import randint
-from abc import ABC, abstractmethod
 
 
 class Process(Thread, ABC):
@@ -19,8 +18,6 @@ class Process(Thread, ABC):
         self.setName(name)
         self.communicator = Com(self.getName(), bus_size)
         self.alive = True
-
-        self.start()
 
     @abstractmethod
     def process(self):
