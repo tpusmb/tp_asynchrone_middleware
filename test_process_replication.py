@@ -41,6 +41,7 @@ my_local_storage = {}
 process_launch = ProcessManager()
 process_launch.add_process(4, ProcessReplication)
 
+print("commend the you can do. To exit enter `exit`")
 print("set id (0, n-1), data, value")
 print("edit id (0, n-1), data, value")
 
