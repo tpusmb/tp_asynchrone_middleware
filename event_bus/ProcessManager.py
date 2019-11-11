@@ -34,14 +34,14 @@ class ProcessManager:
 
     def add_process(self, number_of_process, process_class, **kwargs):
         """
-        Create "number_of_process" process of the Process class and add them to the process list P1 to Pn.
+        Create "number_of_process" process of the Process class and add them to the process list.
         Give the token to the last created process.
+        **Note** All process id is start by 0 !
         :param number_of_process: (Integer) number of process that will be created
         :param process_class: (Object) Process class to instance
-        :param kwargs: (dict) parameters for process_class
         """
         for i in range(number_of_process):
-            self.process_list.append(process_class("P{}".format(i + 1), number_of_process, **kwargs))
+            self.process_list.append(process_class(i, number_of_process, **kwargs))
             self.process_list[-1].start()
         self.process_list[len(self.process_list) - 1].communicator.launch_token()
 

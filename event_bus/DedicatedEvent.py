@@ -27,4 +27,4 @@ class DedicatedEvent:
 
     @staticmethod
     def subscribe_to_dedicated_channel(bus, com):
-        bus.register(com, com.owner_name)
+        bus.register(com, str(com.process_id))

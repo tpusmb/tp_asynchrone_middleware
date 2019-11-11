@@ -28,17 +28,17 @@ FOLDER_ABSOLUTE_PATH = os.path.normpath(os.path.dirname(os.path.abspath(__file__
 
 class TokenThread(Thread):
 
-    def __init__(self, bus, bus_size, owner_name):
+    def __init__(self, bus, bus_size, process_id):
         """
         Constructor of the class.
         :param bus: (EventBus) The bus.
         :param bus_size: (Integer) The size of the bus.
-        :param owner_name: (String) The process that own this thread.
+        :param process_id: (int) The process that own this thread.
         """
         Thread.__init__(self)
         self.bus = bus
         self.bus_size = bus_size
-        self.owner_name = owner_name
+        self.process_id = process_id
         self.alive = True
         self.token = False
         self.is_critical_section = False
@@ -82,8 +82,8 @@ class TokenThread(Thread):
         """
         Send the token to the next process.
         """
-        dest = "P{}".format((int(self.owner_name[1:]) % self.bus_size) + 1)
-        event = Event(topic=dest, data=Message("token", self.owner_name, Message.TOKEN))
+        dest = "{}".format((self.process_id % self.bus_size) + 1)
+        event = Event(topic=dest, data=Message("token", self.process_id, Message.TOKEN))
         self.bus.post(event)
         self.token = False
 

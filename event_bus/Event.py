@@ -1,7 +1,7 @@
 class Event:
     def __init__(self, data, topic="default"):
         self.data = data
-        self.topic = topic
+        self.topic = str(topic)
         self.counter = 0
 
     def get_data(self):

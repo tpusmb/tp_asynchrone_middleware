@@ -7,17 +7,17 @@ from .Com import Com
 
 class Process(Thread, ABC):
 
-    def __init__(self, name, bus_size):
+    def __init__(self, process_id, bus_size):
         """
         Constructor of the class.
-        :param name: (String) Name of the process P1 to Pn.
+        :param process_id: (int) id of the process.
         :param bus_size: (Integer) Number of process in the bus.
         """
         Thread.__init__(self)
 
-        self.setName(name)
-        self.process_id = int(name[1:]) - 1
-        self.communicator = Com(self.getName(), bus_size)
+        self.setName(str(process_id))
+        self.process_id = process_id
+        self.communicator = Com(self.process_id, bus_size)
         self.alive = True
 
     @abstractmethod
