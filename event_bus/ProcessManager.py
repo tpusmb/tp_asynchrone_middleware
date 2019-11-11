@@ -43,6 +43,14 @@ class ProcessManager:
             self.process_list.append(process_class(i, number_of_process, **kwargs))
             self.process_list[-1].start()
         self.process_list[len(self.process_list) - 1].communicator.launch_token()
+        self.start_dice_game()
+
+    def start_dice_game(self):
+        """
+        Start the dice game for every process in the process list.
+        """
+        for process in self.process_list:
+            process.start_dice_game()
 
     def wait_round(self, round_limit):
         """

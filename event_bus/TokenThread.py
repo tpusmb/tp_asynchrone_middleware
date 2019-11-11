@@ -82,7 +82,7 @@ class TokenThread(Thread):
         """
         Send the token to the next process.
         """
-        dest = "{}".format((self.process_id % self.bus_size) + 1)
+        dest = "{}".format(((self.process_id + 1) % self.bus_size))
         event = Event(topic=dest, data=Message("token", self.process_id, Message.TOKEN))
         self.bus.post(event)
         self.token = False

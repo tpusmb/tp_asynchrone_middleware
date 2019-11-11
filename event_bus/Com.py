@@ -40,7 +40,7 @@ class Com:
     def __init__(self, process_id, bus_size, call_back_function):
         """
         Constructor of the class.
-        :param process_id: (int) id of the process
+        :param process_id: (Integer) id of the process
         :param bus_size: (Integer) Number of process in the bus.
         :param call_back_function: (function) function to call back when we receive a new message.
             He need to take on parameter the message_box (list of Message)
@@ -73,7 +73,7 @@ class Com:
         """
 
         if self.call_back_function_thread is not None:
-            # Wait untile the process is alive
+            # Wait until the process is alive
             while self.call_back_function_thread.is_alive():
                 sleep(0.1)
         self.lock.acquire()

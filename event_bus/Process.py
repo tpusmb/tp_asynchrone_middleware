@@ -30,6 +30,7 @@ class Process(Thread, ABC):
         """
         sleep(1)
         while self.alive:
+            self.communicator.loop()
             sleep(0.1)
 
         print(self.getName() + " stopped")

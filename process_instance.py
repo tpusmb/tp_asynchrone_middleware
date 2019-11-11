@@ -1,6 +1,8 @@
 from random import randint
 
 from event_bus import Process
+from event_bus import Message
+from time import sleep
 
 
 class ProcessImplement(Process):
@@ -16,11 +18,19 @@ class ProcessImplement(Process):
         self.round = 0
 
         self.process_results = []
+        self.set_up_dice_game()
 
-    def process(self):
-        print("Somting...")
+    def process(self, message_box):
+        for msg in message_box:
+            data = msg.payload
+            self.process_results.append(data)
+            if len(self.process_results) == self.communicator.bus_size:
+                self.check_winner()
+                self.communicator.synchronize()
+                self.set_up_dice_game()
+                self.start_dice_game()
 
-    def dice_game(self):
+    def set_up_dice_game(self):
         """
         Set up the dice game.
         """
@@ -28,7 +38,13 @@ class ProcessImplement(Process):
         self.dice = randint(1, 100)
         self.round += 1
         print(self.getName() + " Round: {} | Dice: {}".format(self.round, self.dice))
-        # self.synchronize()
+
+    def start_dice_game(self):
+        """
+        Start the dice game by sending the process dice result.
+        """
+        sleep(0.5)
+        self.communicator.broadcast(self.dice, Message.ASYNC)
 
     def check_winner(self):
         """
@@ -40,7 +56,8 @@ class ProcessImplement(Process):
                 higer_result = self.process_results[i]
         if self.dice >= higer_result:
             print(self.getName() + " is the winner with: {}".format(self.dice))
-            # self.request()
+            self.communicator.request_critical_section()
+            self.write_winner()
 
     def write_winner(self):
         """
@@ -50,6 +67,7 @@ class ProcessImplement(Process):
         file = open("winner.txt", "a+")
         file.write("Round: {} Winner: {} Score: {}\n".format(self.round, self.getName(), self.dice))
         file.close()
+        self.communicator.release_critical_section()
 
     def get_round(self):
         """
