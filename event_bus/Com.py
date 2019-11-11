@@ -150,9 +150,7 @@ class Com:
         Function to receive an event and handle his data.
         :param event: (Event) Event that contains the topic and the data of the message.
         """
-        print("aaaaa")
         if isinstance(event, Event):
-            print("bbbbbb")
             data = event.get_data()
             topic = event.get_topic()
             if data.message_type is not Message.TOKEN:
