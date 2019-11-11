@@ -6,6 +6,7 @@ from __future__ import absolute_import
 import logging.handlers
 import os
 import threading
+from threading import Lock
 from copy import deepcopy
 from time import sleep
 
@@ -41,13 +42,18 @@ class Com:
         Constructor of the class.
         :param process_id: (int) id of the process
         :param bus_size: (Integer) Number of process in the bus.
+        :param call_back_function: (function) function to call back when we receive a new message.
+            He need to take on parameter the message_box (list of Message)
+            **Note** If the function take time to compute we add message into message_box while the function finish
         """
         self.bus = EventBus.get_instance()
         self.lamport = Lamport()
         self.token_thread = TokenThread(self.bus, bus_size, process_id)
         self.process_id = process_id
         self.call_back_function = call_back_function
+
         self.call_back_function_thread = None
+        self.wait_call_back_function_thread = None
 
         self.bus_size = bus_size
         self.synch_request_counter = 0
@@ -57,8 +63,25 @@ class Com:
         self.process_alive = []
         self.message_box = []
 
+        self.lock = Lock()
         DedicatedEvent.subscribe_to_dedicated_channel(self.bus, self)
         BroadcastEvent.subscribe_to_broadcast(self.bus, self)
+
+    def _wait_call_back_function(self):
+        """
+        This function wait the call_back_function to finish then restart it because more messages was add.
+        """
+
+        if self.call_back_function_thread is not None:
+            # Wait untile the process is alive
+            while self.call_back_function_thread.is_alive():
+                sleep(0.1)
+        self.lock.acquire()
+        self.call_back_function_thread = threading.Thread(target=self.call_back_function,
+                                                          args=(deepcopy(self.message_box),))
+        self.call_back_function_thread.start()
+        self.message_box = []
+        self.lock.release()
 
     def process(self, event):
         """
@@ -170,12 +193,20 @@ class Com:
             elif data.message_type is Message.HEARTBIT:
                 self.process_alive.append(data.payload)
             else:
+                self.lock.acquire()
                 self.message_box.append(data)
+                self.lock.release()
+                # No call back function running
                 if self.call_back_function_thread is None or not self.call_back_function_thread.is_alive():
-                    self.call_back_function_thread = threading.Thread(target=self.call_back_function,
-                                                                      args=(deepcopy(self.message_box),))
-                    self.message_box = []
-                    self.call_back_function_thread.start()
+                    # run call back function thread
+                    self._wait_call_back_function()
+                # The call back function is running launch wait
+                elif self.wait_call_back_function_thread is None or not self.wait_call_back_function_thread.is_alive():
+                    # Launch wait function
+                    self.wait_call_back_function_thread = threading.Thread(target=self._wait_call_back_function)
+                    self.wait_call_back_function_thread.start()
+                # else we just add messages when the call back function he has finish we will get the message
+
             print("{} receive DATA: Message: {} & Type: {}"
                   " | TOPIC: {}"
                   " | counter: {}".format(self.process_id,
