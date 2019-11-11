@@ -17,11 +17,11 @@ class Process(Thread, ABC):
 
         self.setName(str(process_id))
         self.process_id = process_id
-        self.communicator = Com(self.process_id, bus_size)
+        self.communicator = Com(self.process_id, bus_size, self.process)
         self.alive = True
 
     @abstractmethod
-    def process(self):
+    def process(self, message_box):
         pass
 
     def run(self):
@@ -30,7 +30,7 @@ class Process(Thread, ABC):
         """
         sleep(1)
         while self.alive:
-            self.process()
+            sleep(0.1)
 
         print(self.getName() + " stopped")
 

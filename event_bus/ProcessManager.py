@@ -36,7 +36,6 @@ class ProcessManager:
         """
         Create "number_of_process" process of the Process class and add them to the process list.
         Give the token to the last created process.
-        **Note** All process id is start by 0 !
         :param number_of_process: (Integer) number of process that will be created
         :param process_class: (Object) Process class to instance
         """

@@ -5,6 +5,8 @@ from __future__ import absolute_import
 
 import logging.handlers
 import os
+import threading
+from copy import deepcopy
 from time import sleep
 
 from .BroadcastEvent import BroadcastEvent
@@ -34,7 +36,7 @@ FOLDER_ABSOLUTE_PATH = os.path.normpath(os.path.dirname(os.path.abspath(__file__
 
 class Com:
 
-    def __init__(self, process_id, bus_size):
+    def __init__(self, process_id, bus_size, call_back_function):
         """
         Constructor of the class.
         :param process_id: (int) id of the process
@@ -44,6 +46,8 @@ class Com:
         self.lamport = Lamport()
         self.token_thread = TokenThread(self.bus, bus_size, process_id)
         self.process_id = process_id
+        self.call_back_function = call_back_function
+        self.call_back_function_thread = None
 
         self.bus_size = bus_size
         self.synch_request_counter = 0
@@ -69,6 +73,7 @@ class Com:
         :param payload: (String) Message to _send.
         :param dest: (int) Process that will receive the message.
         """
+        print("send: {}".format(self.process_id))
         event = Event(topic=dest, data=Message(payload, self.process_id, Message.ASYNC))
         self._send(event)
 
@@ -166,6 +171,11 @@ class Com:
                 self.process_alive.append(data.payload)
             else:
                 self.message_box.append(data)
+                if self.call_back_function_thread is None or not self.call_back_function_thread.is_alive():
+                    self.call_back_function_thread = threading.Thread(target=self.call_back_function,
+                                                                      args=(deepcopy(self.message_box),))
+                    self.message_box = []
+                    self.call_back_function_thread.start()
             print("{} receive DATA: Message: {} & Type: {}"
                   " | TOPIC: {}"
                   " | counter: {}".format(self.process_id,
