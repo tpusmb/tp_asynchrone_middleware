@@ -52,7 +52,9 @@ class Com:
         self.process_id = process_id
         self.call_back_function = call_back_function
 
+        # Thread of the call back function
         self.call_back_function_thread = None
+        # Wait function thread
         self.wait_call_back_function_thread = None
 
         self.bus_size = bus_size

@@ -38,6 +38,7 @@ class ProcessManager:
         Give the token to the last created process.
         :param number_of_process: (Integer) number of process that will be created
         :param process_class: (Object) Process class to instance
+        :param kwargs: (dict) parameters name for the process_class. Dont tack into acount the default parameters
         """
         for i in range(number_of_process):
             self.process_list.append(process_class(i, number_of_process, **kwargs))
