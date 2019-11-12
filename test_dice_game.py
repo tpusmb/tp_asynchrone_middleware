@@ -12,7 +12,7 @@ Options:
 from event_bus.EventBus import EventBus
 from event_bus.ProcessManager import ProcessManager
 from docopt import docopt
-from process_instance import ProcessImplement
+from process_dice_game import ProcessDiceGame
 
 NB_PROCESS = 0
 NB_ROUND = 0
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     NB_ROUND = int(arguments["<nb_round>"])
 
     print("\n -> Dice (1 to 100)\n")
-    process_manager.add_process(NB_PROCESS, ProcessImplement, round_limit=NB_ROUND)
+    process_manager.add_process(NB_PROCESS, ProcessDiceGame, round_limit=NB_ROUND)
     process_manager.start_dice_game()
     process_manager.wait_game_finished()
 

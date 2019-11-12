@@ -5,7 +5,7 @@ from event_bus import Message
 from time import sleep
 
 
-class ProcessImplement(Process):
+class ProcessDiceGame(Process):
 
     def __init__(self, name, bus_size, round_limit):
         """

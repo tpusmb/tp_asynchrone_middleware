@@ -12,7 +12,7 @@ import logging.handlers
 import os
 
 from event_bus import ProcessManager
-from p2p_process import P2pProcess
+from process_p2p import P2pProcess
 
 PYTHON_LOGGER = logging.getLogger(__name__)
 if not os.path.exists("log"):
