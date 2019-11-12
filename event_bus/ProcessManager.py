@@ -54,7 +54,7 @@ class ProcessManager:
 
     def wait_game_finished(self):
         """
-        Function that will wait until each Process in the process list has his round reach "round_limit".
+        Function that will wait until each Process in the process list has finished the game.
         """
         end = False
         while not end:

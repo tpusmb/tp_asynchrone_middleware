@@ -24,6 +24,10 @@ class ProcessImplement(Process):
         self.set_up_dice_game()
 
     def process(self, message_box):
+        """
+        Function called when the communicator of the process receive a message that contains a dice score.
+        :param message_box: (List of Message) The communicator's message box.
+        """
         for msg in message_box:
             data = msg.payload
             self.process_results.append(data)
@@ -47,14 +51,14 @@ class ProcessImplement(Process):
 
     def start_dice_game(self):
         """
-        Start the dice game by sending the process dice result.
+        Start the dice game by sending the process dice score.
         """
         sleep(0.5)
         self.communicator.broadcast(self.dice, Message.ASYNC)
 
     def check_winner(self):
         """
-        Find out if the process has the higer dice score and ask for the token if so.
+        Find out if the process has the higer dice score and ask for the critical section if so.
         """
         higer_result = 0
         for i in range(0, len(self.process_results)):
@@ -77,10 +81,3 @@ class ProcessImplement(Process):
         file.write(line)
         file.close()
         self.communicator.release_critical_section()
-
-    def get_round(self):
-        """
-        Get the current round of this process.
-        :return: (Integer) The current round of this process.
-        """
-        return self.round

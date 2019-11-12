@@ -73,7 +73,6 @@ class Com:
         """
         This function wait the call_back_function to finish then restart it because more messages was add.
         """
-
         if self.call_back_function_thread is not None:
             # Wait until the process is alive
             while self.call_back_function_thread.is_alive():
