@@ -44,7 +44,6 @@ class ProcessManager:
             self.process_list.append(process_class(i, number_of_process, **kwargs))
             self.process_list[-1].start()
         self.process_list[len(self.process_list) - 1].communicator.launch_token()
-        self.start_dice_game()
 
     def start_dice_game(self):
         """
@@ -53,21 +52,19 @@ class ProcessManager:
         for process in self.process_list:
             process.start_dice_game()
 
-    def wait_round(self, round_limit):
+    def wait_game_finished(self):
         """
-        Function that will wait until one of the Process in the process list has his round reach "round_limit".
-        :param round_limit: (Integer) The round number
+        Function that will wait until each Process in the process list has his round reach "round_limit".
         """
         end = False
-        index = 0
         while not end:
             sleep(0.2)
-            while not end and index < len(self.process_list):
-                if self.process_list[index].get_round() > round_limit:
-                    end = True
-                else:
-                    index += 1
-            index = 0
+            all_finished = True
+            for process in self.process_list:
+                if not process.game_finished:
+                    all_finished = False
+            if all_finished:
+                end = True
 
     def stop_process(self):
         """
@@ -76,6 +73,6 @@ class ProcessManager:
         for process in self.process_list:
             process.stop()
             process.join()
-            print("Process {} stop".format(process.process_id))
+            print("Process {} stopped".format(process.process_id))
         EventBus.get_instance().stop()
         print("Event bus stop")

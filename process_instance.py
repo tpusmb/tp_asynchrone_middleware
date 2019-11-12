@@ -7,15 +7,18 @@ from time import sleep
 
 class ProcessImplement(Process):
 
-    def __init__(self, name, bus_size):
+    def __init__(self, name, bus_size, round_limit):
         """
         Constructor of the class.
         :param name: (String) Name of the process.
         :param bus_size: (Integer) Number of process in the bus.
+        :param round_limit: (Integer) Number of round the process will play
         """
         super().__init__(name, bus_size)
         self.dice = 0
         self.round = 0
+        self.round_limit = round_limit
+        self.game_finished = False
 
         self.process_results = []
         self.set_up_dice_game()
@@ -27,8 +30,11 @@ class ProcessImplement(Process):
             if len(self.process_results) == self.communicator.bus_size:
                 self.check_winner()
                 self.communicator.synchronize()
-                self.set_up_dice_game()
-                self.start_dice_game()
+                if self.round < self.round_limit:
+                    self.set_up_dice_game()
+                    self.start_dice_game()
+                else:
+                    self.game_finished = True
 
     def set_up_dice_game(self):
         """
@@ -64,8 +70,11 @@ class ProcessImplement(Process):
         Write in a file the current round number and the process's name with his score.
         """
         print(self.getName() + " write")
+        line = "Round: {} Winner: {} Score: {}\n".format(self.round, self.getName(), self.dice)
+        if self.round == self.round_limit:
+            line += "\n"
         file = open("winner.txt", "a+")
-        file.write("Round: {} Winner: {} Score: {}\n".format(self.round, self.getName(), self.dice))
+        file.write(line)
         file.close()
         self.communicator.release_critical_section()
 

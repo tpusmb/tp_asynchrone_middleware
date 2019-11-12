@@ -27,8 +27,9 @@ if __name__ == '__main__':
     NB_ROUND = int(arguments["<nb_round>"])
 
     print("\n -> Dice (1 to 100)\n")
-    process_manager.add_process(NB_PROCESS, ProcessImplement)
-    process_manager.wait_round(NB_ROUND)
+    process_manager.add_process(NB_PROCESS, ProcessImplement, round_limit=NB_ROUND)
+    process_manager.start_dice_game()
+    process_manager.wait_game_finished()
 
     process_manager.stop_process()
     bus.stop()
