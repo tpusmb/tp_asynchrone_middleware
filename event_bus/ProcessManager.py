@@ -5,7 +5,7 @@ from __future__ import absolute_import
 import os
 import logging.handlers
 from time import sleep
-from event_bus.Process import Process
+from .EventBus import EventBus
 
 PYTHON_LOGGER = logging.getLogger(__name__)
 if not os.path.exists("log"):
@@ -67,3 +67,7 @@ class ProcessManager:
         """
         for process in self.process_list:
             process.stop()
+            process.join()
+            print("Process {} stop".format(process.process_id))
+        EventBus.get_instance().stop()
+        print("Event bus stop")

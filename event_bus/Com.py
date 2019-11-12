@@ -108,14 +108,13 @@ class Com:
         :param payload: (String) Message to _send.
         :param dest: (String) id of the process to send
         """
-        get_msg = False
         event = Event(topic=dest, data=Message(payload, self.process_id, Message.SYNC))
         self._send(event)
-        while not get_msg:
+        while True:
             for msg in self.message_box:
-                if msg.from_id == dest and msg.message_type == Message.SYNC:
-                    get_msg = True
+                if msg.sender == dest and msg.message_type == Message.SYNC:
                     self.message_box.remove(msg)
+                    return msg
             sleep(0.1)
 
     def broadcast(self, payload, message_type):
@@ -150,9 +149,9 @@ class Com:
         msg_get = None
         while not get_msg:
             for msg in self.message_box:
-                if msg.from_id == sender and msg.message_type == Message.SYNC:
+                if msg.sender == sender and msg.message_type == Message.SYNC:
                     get_msg = True
-                    msg_get = msg.payload
+                    msg_get = msg
                     self.message_box.remove(msg)
             sleep(0.1)
         event = Event(topic=sender, data=Message(payload, self.process_id, Message.SYNC))
@@ -194,6 +193,11 @@ class Com:
                 self.synch_request_counter += 1
             elif data.message_type is Message.HEARTBIT:
                 self.process_alive.append(data.payload)
+            # If is a sync message we just add into the message box
+            elif data.message_type is Message.SYNC:
+                self.lock.acquire()
+                self.message_box.append(data)
+                self.lock.release()
             else:
                 self.lock.acquire()
                 self.message_box.append(data)

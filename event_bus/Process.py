@@ -44,4 +44,3 @@ class Process(Thread, ABC):
         """
         self.communicator.token_thread.stop()
         self.alive = False
-        self.join()
