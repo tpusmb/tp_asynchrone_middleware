@@ -31,7 +31,7 @@ If you want to exit your virtualenv:
 
 ### Creat process
 
-To creat a new process you need to make a Class implement the Process Class
+To creat a new process you need to implement the Process Class
 
 ```python
 from event_bus import Process
@@ -54,6 +54,7 @@ Then to run you process:
 ```python
 from event_bus import ProcessManager
 process_launch = ProcessManager()
+# Start 5 MyProcess
 process_launch.add_process(5, MyProcess, param1="foo", param2="bar")
 process_launch.stop_process()
 ```
