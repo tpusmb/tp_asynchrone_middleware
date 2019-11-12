@@ -1,6 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+Script to show an usage example
+The idea is to have 4 process that duplicate the same data. Each process have his own local date.
+When a process edit his local he do the folling step:
+1. Ask the permition af all other process to edit
+2. When is get all ok from other proces he send the new data, value to other process
+3. Wait the reception of each messages
+4. Edit his local value
+
+Each data have a value
+"""
+
 from __future__ import absolute_import
 
 from event_bus import ProcessManager
@@ -29,6 +41,7 @@ my_local_storage = {}
 process_launch = ProcessManager()
 process_launch.add_process(4, ProcessReplication)
 
+print("commend the you can do. To exit enter `exit`")
 print("set id (0, n-1), data, value")
 print("edit id (0, n-1), data, value")
 

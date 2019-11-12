@@ -56,37 +56,44 @@ class FileStorage:
 
 class ProcessReplication(Process):
 
-    def __init__(self, name, bus_size):
-        super().__init__(name, bus_size)
+    def __init__(self, process_id, bus_size):
+        super().__init__(process_id, bus_size)
         self.file_storage = FileStorage(self.process_id)
         self.in_critical = False
         self.acc = -1
 
     def process(self, message_box):
+        """
+        Method call when we get new values
+        :param message_box: (list of Message) All get messages
+        """
         for msg in message_box:
             data = msg.payload
             try:
-                # section critique
+                # If a process ask for critical section
                 if data == "section":
                     print("section")
                     self.in_critical = True
                     self.communicator.send_to("ok", msg.sender)
+                # When we get ok from other process
                 elif data == "ok":
                     self.acc -= 1
                     print("acc = {}".format(self.acc))
                     if self.acc == 0:
                         self.in_critical = True
+                # When we need to edit the local value
                 elif data[0] in self.file_storage.local_data:
                     print("{} get: {}, {}".format(self.process_id, data[0], data[1]))
                     self.file_storage.set_value(data[0], data[1])
                     self.in_critical = False
-                    # acuser
+                    # send ok
                     self.communicator.send_to("ok", msg.sender)
             except Exception as e:
                 pass
 
     def edit(self, data, value):
 
+        # 1- Stop if a process his already in the critical section
         print("{} wait critical".format(self.process_id))
         while self.in_critical:
             pass
@@ -99,6 +106,7 @@ class ProcessReplication(Process):
             print("send to: {} the section".format(id_send))
             self.communicator.send_to("section", id_send)
 
+        # Wait that all process say ok
         print("{}  wait for all ok".format(self.process_id))
         while not self.in_critical:
             pass
@@ -111,6 +119,7 @@ class ProcessReplication(Process):
             print("send to: {}".format(id_send))
             self.communicator.send_to([data, value], id_send)
 
+        # Wait that all process receive the new value
         print("{}  wait for all ok".format(self.process_id))
         while not self.in_critical:
             pass

@@ -22,6 +22,10 @@ class Process(Thread, ABC):
 
     @abstractmethod
     def process(self, message_box):
+        """
+        Function call when this process get new messages
+        :param message_box: (list of Message) All get message
+        """
         pass
 
     def run(self):
@@ -41,4 +45,3 @@ class Process(Thread, ABC):
         """
         self.communicator.token_thread.stop()
         self.alive = False
-        self.join()
